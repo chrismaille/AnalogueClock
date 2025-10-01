@@ -1,7 +1,7 @@
-## Interface: 100100
+## Interface: 110005
 ## Title: AnalogueClock
 ## Version: @project-version@
-## Notes: Analogue clock for the minimap |cFFAAAAAAby watchout_cf@curse.com|r
+## Notes: Draggable analogue clock, compatible with ElvUI |cFFAAAAAAby watchout_cf@curse.com|r
 ## IconTexture: Interface\AddOns\AnalogueClock\Textures\Clock-Icon
 ## SavedVariables: AnalogueClock_Settings
 ## LoadManagers: AddonLoader, LoadIT

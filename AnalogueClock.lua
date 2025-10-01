@@ -20,7 +20,7 @@ local offsetx = -5;
 local offsety = -5;
 
 local AnalogueClock_onclick, AnalogueClock_init, AnalogueClock_update, AnalogueClock_onenter,
-	AnalogueClock_onupdate;
+	AnalogueClock_onupdate, AnalogueClock_ondragstart, AnalogueClock_ondragstop;
 
 Addon.Frame = nil;
 Addon.Initialized = false;
@@ -44,15 +44,51 @@ function AnalogueClock_onclick(self, button)
 end
 
 ---
+-- Drag start handler
+function AnalogueClock_ondragstart(self)
+	self:StartMoving();
+end
+
+---
+-- Drag stop handler
+function AnalogueClock_ondragstop(self)
+	self:StopMovingOrSizing();
+	-- Save position
+	local point, _, relativePoint, xOfs, yOfs = self:GetPoint();
+	if not AnalogueClock_Settings then
+		AnalogueClock_Settings = {};
+	end
+	AnalogueClock_Settings.point = point;
+	AnalogueClock_Settings.relativePoint = relativePoint;
+	AnalogueClock_Settings.xOfs = xOfs;
+	AnalogueClock_Settings.yOfs = yOfs;
+end
+
+---
 -- @param self (frame) usually the GameTimeFrame
 function AnalogueClock_init(parent, gtf, gtcig, gtcio, ... )
 	-- Create a base frame to attach all textures to
-	local frame = CreateFrame("button", "AnalogueClock", parent);
-	frame:SetPoint("TOPRIGHT", parent, "TOPRIGHT", offsetx, offsety);
+	-- Use UIParent instead of Minimap for ElvUI compatibility
+	local frame = CreateFrame("button", "AnalogueClock", UIParent);
 	frame:SetFrameStrata("MEDIUM");
 	frame:SetWidth(size);
 	frame:SetHeight(size);
 	frame:RegisterForClicks("LeftButtonUp", "RightButtonUp", "MiddleButtonUp");
+	
+	-- Make frame draggable
+	frame:SetMovable(true);
+	frame:EnableMouse(true);
+	frame:RegisterForDrag("LeftButton");
+	frame:SetClampedToScreen(true);
+	
+	-- Restore saved position or use default
+	if AnalogueClock_Settings and AnalogueClock_Settings.point then
+		frame:SetPoint(AnalogueClock_Settings.point, UIParent, AnalogueClock_Settings.relativePoint,
+			AnalogueClock_Settings.xOfs, AnalogueClock_Settings.yOfs);
+	else
+		-- Default position: top-right near minimap
+		frame:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -50, -50);
+	end
 
 	-- Border
 	local bg_inset = -4.2;
@@ -124,6 +160,8 @@ function AnalogueClock_init(parent, gtf, gtcig, gtcio, ... )
 	frame:SetScript("OnClick", AnalogueClock_onclick);
 	frame:SetScript("OnEnter", AnalogueClock_onenter);
 	frame:SetScript("OnUpdate", AnalogueClock_onupdate);
+	frame:SetScript("OnDragStart", AnalogueClock_ondragstart);
+	frame:SetScript("OnDragStop", AnalogueClock_ondragstop);
 
 	init_run = true;
 	return frame;
